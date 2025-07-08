@@ -5,6 +5,11 @@ import { Badge } from '@/components/ui/badge.jsx'
 import { Menu, X, MessageCircle, Zap, DollarSign, Users, ArrowRight, Check, Star } from 'lucide-react'
 import './App.css'
 
+// Import form components
+import LoginForm from './components/LoginForm.jsx'
+import RegisterForm from './components/RegisterForm.jsx'
+import PlanCheckout from './components/PlanCheckout.jsx'
+
 // Import images
 import heroImage from './assets/images/hero_automation_agency.png'
 import efficiencyIcon from './assets/images/efficiency_icon.png'
@@ -16,6 +21,8 @@ import chatbotExample from './assets/images/chatbot_ui_example.png'
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isYearly, setIsYearly] = useState(false)
+  const [currentView, setCurrentView] = useState('home') // 'home', 'login', 'register', 'checkout'
+  const [selectedPlan, setSelectedPlan] = useState('pro')
   const [chatMessages, setChatMessages] = useState([
     { type: 'bot', message: 'Hello! I\'m your AI assistant. How can I help you today?' }
   ])
@@ -34,6 +41,41 @@ function App() {
     ]
     setChatMessages(newMessages)
     setUserInput('')
+  }
+
+  // Handle navigation between views
+  const handleBackToHome = (targetView) => {
+    if (targetView === 'login') {
+      setCurrentView('login')
+    } else if (targetView === 'register') {
+      setCurrentView('register')
+    } else {
+      setCurrentView('home')
+    }
+  }
+
+  const handlePlanSelection = (planKey) => {
+    setSelectedPlan(planKey)
+    setCurrentView('checkout')
+  }
+
+  // Render different views based on currentView state
+  if (currentView === 'login') {
+    return <LoginForm onBack={handleBackToHome} />
+  }
+
+  if (currentView === 'register') {
+    return <RegisterForm onBack={handleBackToHome} />
+  }
+
+  if (currentView === 'checkout') {
+    return (
+      <PlanCheckout 
+        onBack={handleBackToHome} 
+        selectedPlan={selectedPlan}
+        billingCycle={isYearly ? 'yearly' : 'monthly'}
+      />
+    )
   }
 
   const plans = [
@@ -106,8 +148,8 @@ function App() {
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="outline">Login</Button>
-              <Button>Get Started</Button>
+              <Button variant="outline" onClick={() => setCurrentView('login')}>Login</Button>
+              <Button onClick={() => setCurrentView('register')}>Get Started</Button>
             </div>
 
             {/* Mobile menu button */}
@@ -126,8 +168,8 @@ function App() {
                 <a href="#pricing" className="text-gray-700 hover:text-blue-600 transition-colors">Pricing</a>
                 <a href="#contact" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
                 <div className="flex flex-col space-y-2 pt-4">
-                  <Button variant="outline">Login</Button>
-                  <Button>Get Started</Button>
+                  <Button variant="outline" onClick={() => setCurrentView('login')}>Login</Button>
+                  <Button onClick={() => setCurrentView('register')}>Get Started</Button>
                 </div>
               </nav>
             </div>
@@ -405,17 +447,17 @@ function App() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {plans.map((plan, index) => (
-              <Card key={index} className={`relative p-6 ${plan.popular ? 'border-blue-500 border-2 shadow-lg' : ''}`}>
+              <Card key={index} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg scale-105' : ''}`}>
                 {plan.popular && (
                   <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
                     Most Popular
                   </Badge>
                 )}
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <div className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <div className="flex items-baseline">
                     <span className="text-4xl font-bold">
                       ${isYearly ? plan.yearlyPrice : plan.monthlyPrice}
                     </span>
@@ -439,6 +481,7 @@ function App() {
                   <Button 
                     className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
+                    onClick={() => handlePlanSelection(plan.name.toLowerCase())}
                   >
                     Get Started
                   </Button>
